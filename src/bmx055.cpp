@@ -9,10 +9,23 @@ BMX055::BMX055() : _spi()
 
 BMX055::~BMX055() {}
 
-void BMX055::init()
+void BMX055::init(POWER_MODE_T power, RANGE_T range, BW_T bw)
 {
-    setLowPowerMode2();
-    setPowerMode(POWER_MODE_NORMAL);
+    // In case we use low power mode, we want to make sure it works in low power mode 2
+    this->setLowPowerMode2();
+
+    // Set the default power mode to normal
+    this->setPowerMode(power);
+
+    // Set range to 2G
+    this->setRange(range);
+
+    // Set bandwidth
+    this->setBandwidth(bw);
+
+    // enable output filtering and register shadowing
+    this->enableOutputFiltering(true);
+    this->enableRegisterShadowing(true);
     return;
 }
 
@@ -20,6 +33,48 @@ uint8_t BMX055::getChipID()
 {
     uint8_t result = this->SPIReadAccel(REG_CHIP_ID, 1);
     return result;
+}
+
+void BMX055::setRange(RANGE_T range)
+{
+    this->SPIWriteAccel(REG_PMU_RANGE, range);
+}
+
+void BMX055::setBandwidth(BW_T bw)
+{
+    this->SPIWriteAccel(REG_PMU_BW, bw);
+}
+
+void BMX055::enableOutputFiltering(bool enable)
+{
+    uint8_t filtering = (uint8_t)this->SPIReadAccel(REG_ACC_HBW, 1) & ~_ACC_HBW_RESERVED_BITS;
+
+    if (enable)
+    {
+        filtering &= ~ACC_HBW_DATA_HIGH_BW;
+    }
+    else
+    {
+        filtering |= ACC_HBW_DATA_HIGH_BW;
+    }
+
+    this->SPIWriteAccel(REG_ACC_HBW, filtering);
+}
+
+void BMX055::enableRegisterShadowing(bool enable)
+{
+    uint8_t shadowing = (uint8_t)this->SPIReadAccel(REG_ACC_HBW, 1) & ~_ACC_HBW_RESERVED_BITS;
+
+    if (enable)
+    {
+        shadowing &= ~ACC_HBW_SHADOW_DIS;
+    }
+    else
+    {
+        shadowing |= ACC_HBW_SHADOW_DIS;
+    }
+
+    this->SPIWriteAccel(REG_ACC_HBW, shadowing);
 }
 
 void BMX055::setPowerMode(POWER_MODE_T power)
@@ -35,7 +90,6 @@ void BMX055::setLowPowerMode2()
     uint8_t low_power_config = (uint8_t)this->SPIReadAccel(REG_PMU_LOW_POWER, 1) & ~_LOW_POWER_RESERVED_BITS;
     low_power_config |= LOW_POWER_LOWPOWER_MODE;
     this->SPIWriteAccel(REG_PMU_LOW_POWER, low_power_config);
-    Serial.println(this->SPIReadAccel(REG_PMU_LOW_POWER, 1));
 }
 
 uint32_t BMX055::SPIReadAccel(uint8_t reg, uint8_t bytes_to_read)

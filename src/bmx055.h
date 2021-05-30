@@ -87,6 +87,43 @@ typedef enum : uint8_t
 } BMA250E_REGS_T;
 
 /**
+* PMU_RANGE (accelerometer g-range) values
+*/
+typedef enum
+{
+    RANGE_2G = 3,
+    RANGE_4G = 5,
+    RANGE_8G = 8,
+    RANGE_16G = 12
+} RANGE_T;
+
+/**
+     * REG_ACC_HBW bits
+     */
+typedef enum
+{
+    _ACC_HBW_RESERVED_BITS = 0x0f | 0x10 | 0x20,
+    // 0x01-0x20 reserved
+    ACC_HBW_SHADOW_DIS = 0x40,
+    ACC_HBW_DATA_HIGH_BW = 0x80
+} ACC_HBW_BITS_T;
+
+/**
+* PMU_BW (accelerometer filter bandwidth) values
+*/
+typedef enum
+{
+    BW_7_81 = 8, // 7.81 Hz
+    BW_15_63 = 9,
+    BW_31_25 = 10,
+    BW_62_5 = 11,
+    BW_125 = 12,
+    BW_250 = 13,
+    BW_500 = 14,
+    BW_1000 = 15
+} BW_T;
+
+/**
 * POWER_MODE values
 */
 typedef enum
@@ -149,9 +186,13 @@ public:
     BMX055();
     ~BMX055();
 
-    void init();
+    void init(POWER_MODE_T power = POWER_MODE_NORMAL, RANGE_T range = RANGE_2G, BW_T bw = BW_7_81);
     void setPowerMode(POWER_MODE_T power_mode);
     void setLowPowerMode2();
+    void setRange(RANGE_T range);
+    void setBandwidth(BW_T bw);
+    void enableOutputFiltering(bool enable = true);
+    void enableRegisterShadowing(bool enable = true);
     uint8_t getChipID();
 };
 
