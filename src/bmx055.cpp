@@ -23,10 +23,20 @@ void BMX055::init(POWER_MODE_T power, RANGE_T range, BW_T bw)
     // Set bandwidth
     this->setBandwidth(bw);
 
-    // enable output filtering and register shadowing
-    this->enableOutputFiltering(true);
-    this->enableRegisterShadowing(true);
+    // enable output filtering, register shadowing, FIFO
+    this->enableOutputFiltering();
+    this->enableRegisterShadowing();
+    this->FIFOConfig();
+    this->enableFIFO();
+
     return;
+}
+
+void update()
+{
+    int buffer_length = FIFO_BUF_LEN;
+    uint8_t buffer[buffer_length];
+    uint8_t start_reg = REG_FIFO_DATA;
 }
 
 uint8_t BMX055::getChipID()
@@ -43,6 +53,18 @@ void BMX055::setRange(RANGE_T range)
 void BMX055::setBandwidth(BW_T bw)
 {
     this->SPIWriteAccel(REG_PMU_BW, bw);
+}
+
+void BMX055::FIFOConfig(FIFO_MODE_T mode, FIFO_DATA_SEL_T data_select)
+{
+    uint8_t config = ((mode << _FIFO_CONFIG_1_FIFO_MODE_SHIFT) | (data_select << _FIFO_CONFIG_1_FIFO_DATA_SHIFT));
+
+    this->SPIWriteAccel(REG_FIFO_CONFIG_1, config);
+}
+
+void BMX055::enableFIFO(bool enable)
+{
+    this->use_fifo = enable;
 }
 
 void BMX055::enableOutputFiltering(bool enable)
