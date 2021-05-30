@@ -32,11 +32,34 @@ void BMX055::init(POWER_MODE_T power, RANGE_T range, BW_T bw)
     return;
 }
 
-void update()
+void BMX055::update()
 {
     int buffer_length = FIFO_BUF_LEN;
-    uint8_t buffer[buffer_length];
-    uint8_t start_reg = REG_FIFO_DATA;
+    uint16_t mask = 0xFFFF;
+    uint8_t shift = 0;
+    float divisor = 16.0;
+    uint8_t reg = REG_FIFO_DATA;
+
+    uint64_t result = this->SPIReadAccel(reg, FIFO_BUF_LEN);
+
+    int16_t value;
+    // z accel
+    shift = 0;
+    value = (result >> shift) & mask;
+    this->accZ = float(value / divisor);
+    Serial.println((accZ * this->accScale) / 1000.0);
+
+    // z accel
+    shift = 0;
+    value = (result >> shift) & mask;
+    this->accZ = float(value / divisor);
+    Serial.println((accZ * this->accScale) / 1000.0);
+
+    // z accel
+    shift = 0;
+    value = (result >> shift) & mask;
+    this->accZ = float(value / divisor);
+    Serial.println((accZ * this->accScale) / 1000.0);
 }
 
 uint8_t BMX055::getChipID()
@@ -47,6 +70,21 @@ uint8_t BMX055::getChipID()
 
 void BMX055::setRange(RANGE_T range)
 {
+    switch (range)
+    {
+    case RANGE_2G:
+        this->accScale = 0.91;
+        break;
+    case RANGE_4G:
+        this->accScale = 1.95;
+        break;
+    case RANGE_8G:
+        this->accScale = 3.91;
+        break;
+    case RANGE_16G:
+        this->accScale = 7.81;
+        break;
+    }
     this->SPIWriteAccel(REG_PMU_RANGE, range);
 }
 
@@ -114,10 +152,10 @@ void BMX055::setLowPowerMode2()
     this->SPIWriteAccel(REG_PMU_LOW_POWER, low_power_config);
 }
 
-uint32_t BMX055::SPIReadAccel(uint8_t reg, uint8_t bytes_to_read)
+uint64_t BMX055::SPIReadAccel(uint8_t reg, uint8_t bytes_to_read)
 {
     uint8_t in_byte = 0;
-    uint32_t result = 0;
+    uint64_t result = 0;
     uint8_t command = reg | READ;
     this->_spi->beginTransaction(this->_spi_settings);
     digitalWrite(ACC_CS, LOW);
