@@ -1,0 +1,24 @@
+{
+    "name": "BMX055",
+    "version": "0.1.0",
+    "description": "Arduino SPI Communication Library for BMX055",
+    "keywords": "bmx055, accelerometer, arduino, imu, spi, bosch",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/haloship/bmx055"
+    },
+    "authors": [
+        {
+            "name": "Nishant Aswani",
+            "email": "nishantaswani@nyu.edu",
+            "url": "https://www.nishantaswani.com",
+            "maintainer": true
+        }
+    ],
+    "license": "GPL-3.0 License",
+    "dependencies": {
+        "ownername/print": "~1.3.0"
+    },
+    "frameworks": "ststm32",
+    "platforms": "arduino"
+}
