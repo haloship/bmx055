@@ -1,4 +1,4 @@
-# Bosch Sensortec BMX055
+# Bosch Sensortec BMX055 Arduino SPI Library
 
 ## Introduction
 
