@@ -15,10 +15,6 @@
             "maintainer": true
         }
     ],
-    "license": "GPL-3.0 License",
-    "dependencies": {
-        "ownername/print": "~1.3.0"
-    },
     "frameworks": "ststm32",
     "platforms": "arduino"
 }
