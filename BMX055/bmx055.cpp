@@ -34,32 +34,21 @@ void BMX055::init(POWER_MODE_T power, RANGE_T range, BW_T bw)
 
 void BMX055::update()
 {
-    int buffer_length = FIFO_BUF_LEN;
-    uint16_t mask = 0xFFFF;
-    uint8_t shift = 0;
-    float divisor = 16.0;
     uint8_t reg = REG_FIFO_DATA;
+    int buffer_length = FIFO_BUF_LEN;
+    int64_t result = this->SPIReadAccel(reg, FIFO_BUF_LEN);
 
-    uint64_t result = this->SPIReadAccel(reg, FIFO_BUF_LEN);
+    int16_t value = 0;
+    float divisor = 16.0;
 
-    int16_t value;
-    // z accel
-    shift = 0;
-    value = (result >> shift) & mask;
-    this->accZ = float(value / divisor);
-    Serial.println((accZ * this->accScale) / 1000.0);
+    for (int i = 0; i < 3; i++)
+    {
+        value = result >> 8 * 2 * i;
+        value = ((0x00FF & value) << 8) | ((0xFF00 & value) >> 8);
+        acceleration[i] = float(value / divisor);
+    }
 
-    // z accel
-    shift = 0;
-    value = (result >> shift) & mask;
-    this->accZ = float(value / divisor);
-    Serial.println((accZ * this->accScale) / 1000.0);
-
-    // z accel
-    shift = 0;
-    value = (result >> shift) & mask;
-    this->accZ = float(value / divisor);
-    Serial.println((accZ * this->accScale) / 1000.0);
+    return;
 }
 
 uint8_t BMX055::getChipID()
@@ -68,21 +57,30 @@ uint8_t BMX055::getChipID()
     return result;
 }
 
+void BMX055::getAccelerometer(float *x, float *y, float *z)
+{
+    *x = acceleration[2];
+    *y = acceleration[1];
+    *z = acceleration[0];
+
+    return;
+}
+
 void BMX055::setRange(RANGE_T range)
 {
     switch (range)
     {
     case RANGE_2G:
-        this->accScale = 0.91;
+        this->acc_scale = 0.91;
         break;
     case RANGE_4G:
-        this->accScale = 1.95;
+        this->acc_scale = 1.95;
         break;
     case RANGE_8G:
-        this->accScale = 3.91;
+        this->acc_scale = 3.91;
         break;
     case RANGE_16G:
-        this->accScale = 7.81;
+        this->acc_scale = 7.81;
         break;
     }
     this->SPIWriteAccel(REG_PMU_RANGE, range);
@@ -152,10 +150,10 @@ void BMX055::setLowPowerMode2()
     this->SPIWriteAccel(REG_PMU_LOW_POWER, low_power_config);
 }
 
-uint64_t BMX055::SPIReadAccel(uint8_t reg, uint8_t bytes_to_read)
+int64_t BMX055::SPIReadAccel(uint8_t reg, uint8_t bytes_to_read)
 {
     uint8_t in_byte = 0;
-    uint64_t result = 0;
+    int64_t result = 0;
     uint8_t command = reg | READ;
     this->_spi->beginTransaction(this->_spi_settings);
     digitalWrite(ACC_CS, LOW);
@@ -166,7 +164,7 @@ uint64_t BMX055::SPIReadAccel(uint8_t reg, uint8_t bytes_to_read)
     {
         result = result << 8;
         in_byte = this->_spi->transfer(0x00);
-        result = result | in_byte;
+        result |= in_byte;
         bytes_to_read--;
     }
     digitalWrite(ACC_CS, HIGH);

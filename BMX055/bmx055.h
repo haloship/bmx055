@@ -24,10 +24,10 @@ private:
     SPIClass *_spi;
     bool use_fifo;
 
-    float accScale;
-    float accX, accY, accZ;
+    float acc_scale;
+    float acceleration[3];
 
-    uint64_t SPIReadAccel(uint8_t reg, uint8_t bytes_to_read);
+    int64_t SPIReadAccel(uint8_t reg, uint8_t bytes_to_read);
     void SPIWriteAccel(uint8_t reg, uint8_t write_data);
 
 public:
