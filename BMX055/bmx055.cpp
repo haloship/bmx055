@@ -59,9 +59,9 @@ uint8_t BMX055::getChipID()
 
 void BMX055::getAccelerometer(float *x, float *y, float *z)
 {
-    *x = acceleration[2];
-    *y = acceleration[1];
-    *z = acceleration[0];
+    *x = (acceleration[2] * acc_scale) / 1000.0;
+    *y = (acceleration[1] * acc_scale) / 1000.0;
+    *z = (acceleration[0] * acc_scale) / 1000.0;
 
     return;
 }
